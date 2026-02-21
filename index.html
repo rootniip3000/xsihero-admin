@@ -4,74 +4,185 @@
 <meta charset="UTF-8">
 <title>ADMIN PANEL</title>
 <style>
-body {
-    background-color: #000;
-    color: #00ff88;
-    font-family: monospace;
-    text-align: center;
-    padding-top: 50px;
+body{background:#000;color:#00ff88;font-family:monospace;margin:0}
+.container{border:2px solid #00ff88;padding:20px;width:95%;max-width:900px;margin:40px auto}
+h2{margin-top:0}
+input,button,select{
+  background:#000;border:1px solid #00ff88;color:#00ff88;
+  padding:8px;margin:5px 0
 }
-.container {
-    border: 2px solid #00ff88;
-    padding: 20px;
-    width: 90%;
-    max-width: 400px;
-    margin: auto;
-}
-input {
-    background: black;
-    border: 1px solid #00ff88;
-    color: #00ff88;
-    padding: 10px;
-    width: 90%;
-    margin: 10px 0;
-}
-button {
-    background: #00ff88;
-    border: none;
-    padding: 10px 20px;
-    cursor: pointer;
-}
-button:hover {
-    background: #00cc66;
-}
-.hidden {
-    display: none;
-}
+button{cursor:pointer}
+button:hover{background:#003322}
+.hidden{display:none}
+.table{width:100%;border-collapse:collapse;margin-top:10px}
+.table td,.table th{border:1px solid #00ff88;padding:6px;text-align:left}
+.bad{color:#ff4444}
+.good{color:#00ff88}
+.flex{display:flex;gap:10px;flex-wrap:wrap}
+.box{flex:1;min-width:260px}
+hr{border:1px solid #003322}
+.small{font-size:12px;opacity:.8}
 </style>
 </head>
 <body>
 
+<!-- LOGIN -->
 <div class="container" id="loginBox">
-<h2>ADMIN LOGIN</h2>
-<input type="password" id="password" placeholder="Enter Admin Password">
-<br>
-<button onclick="login()">LOGIN</button>
-<p id="error"></p>
+  <h2>ADMIN LOGIN</h2>
+  <input type="password" id="password" placeholder="Enter Admin Password">
+  <br>
+  <button onclick="login()">LOGIN</button>
+  <p id="error" class="bad"></p>
 </div>
 
-<div class="container hidden" id="adminPanel">
-<h2>WELCOME ADMIN</h2>
-<p>ระบบควบคุมเปิดใช้งาน</p>
-<button onclick="logout()">LOGOUT</button>
+<!-- DASHBOARD -->
+<div class="container hidden" id="dashboard">
+  <h2>DASHBOARD</h2>
+  <div class="small">IP ผู้เข้าเว็บ: <span id="ipText">กำลังโหลด...</span></div>
+  <hr>
+
+  <div class="flex">
+    <!-- MEMBER -->
+    <div class="box">
+      <h3>จัดการสมาชิก</h3>
+      <input id="memberName" placeholder="ชื่อสมาชิก">
+      <button onclick="addMember()">เพิ่มสมาชิก</button>
+      <table class="table" id="memberTable">
+        <tr><th>ชื่อ</th><th>จัดการ</th></tr>
+      </table>
+    </div>
+
+    <!-- BLACKLIST -->
+    <div class="box">
+      <h3>Blacklist</h3>
+      <input id="blackName" placeholder="ชื่อที่จะแบน">
+      <button onclick="addBlacklist()">เพิ่ม Blacklist</button>
+      <table class="table" id="blackTable">
+        <tr><th>ชื่อ</th><th>จัดการ</th></tr>
+      </table>
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- BILL -->
+  <h3>สร้างเลขบิล</h3>
+  <button onclick="createBill()">สร้างบิล</button>
+  <p id="billOutput" class="good"></p>
+
+  <hr>
+  <button onclick="logout()">LOGOUT</button>
 </div>
 
 <script>
-const adminPassword = "102030405060708090908070605040302010Ll"; // เปลี่ยนรหัสได้
+const adminPassword = "102030405060708090908070605040302010Ll";
 
-function login() {
-    const input = document.getElementById("password").value;
-    if(input === adminPassword){
-        document.getElementById("loginBox").classList.add("hidden");
-        document.getElementById("adminPanel").classList.remove("hidden");
-    } else {
-        document.getElementById("error").innerText = "Wrong Password!";
-    }
+// ===== LOGIN =====
+function login(){
+  const input = document.getElementById("password").value;
+  if(input === adminPassword){
+    localStorage.setItem("adminLogged","true");
+    showDashboard();
+  }else{
+    document.getElementById("error").innerText="ACCESS DENIED";
+  }
 }
 
 function logout(){
-    document.getElementById("adminPanel").classList.add("hidden");
-    document.getElementById("loginBox").classList.remove("hidden");
+  localStorage.removeItem("adminLogged");
+  location.reload();
+}
+
+function showDashboard(){
+  document.getElementById("loginBox").classList.add("hidden");
+  document.getElementById("dashboard").classList.remove("hidden");
+  loadIP();
+  renderMembers();
+  renderBlacklist();
+}
+
+if(localStorage.getItem("adminLogged")==="true"){
+  showDashboard();
+}
+
+// ===== IP =====
+function loadIP(){
+  fetch("https://api.ipify.org?format=json")
+    .then(res=>res.json())
+    .then(data=>{
+      document.getElementById("ipText").innerText=data.ip;
+    })
+    .catch(()=>{
+      document.getElementById("ipText").innerText="ไม่สามารถดึง IP ได้";
+    });
+}
+
+// ===== MEMBER SYSTEM =====
+function addMember(){
+  const name=document.getElementById("memberName").value;
+  if(!name)return;
+  let members=JSON.parse(localStorage.getItem("members")||"[]");
+  members.push(name);
+  localStorage.setItem("members",JSON.stringify(members));
+  document.getElementById("memberName").value="";
+  renderMembers();
+}
+
+function renderMembers(){
+  const table=document.getElementById("memberTable");
+  table.innerHTML="<tr><th>ชื่อ</th><th>จัดการ</th></tr>";
+  let members=JSON.parse(localStorage.getItem("members")||"[]");
+  members.forEach((m,i)=>{
+    table.innerHTML+=`
+      <tr>
+        <td>${m}</td>
+        <td><button onclick="removeMember(${i})">ลบ</button></td>
+      </tr>`;
+  });
+}
+
+function removeMember(i){
+  let members=JSON.parse(localStorage.getItem("members")||"[]");
+  members.splice(i,1);
+  localStorage.setItem("members",JSON.stringify(members));
+  renderMembers();
+}
+
+// ===== BLACKLIST =====
+function addBlacklist(){
+  const name=document.getElementById("blackName").value;
+  if(!name)return;
+  let black=JSON.parse(localStorage.getItem("blacklist")||"[]");
+  black.push(name);
+  localStorage.setItem("blacklist",JSON.stringify(black));
+  document.getElementById("blackName").value="";
+  renderBlacklist();
+}
+
+function renderBlacklist(){
+  const table=document.getElementById("blackTable");
+  table.innerHTML="<tr><th>ชื่อ</th><th>จัดการ</th></tr>";
+  let black=JSON.parse(localStorage.getItem("blacklist")||"[]");
+  black.forEach((m,i)=>{
+    table.innerHTML+=`
+      <tr>
+        <td>${m}</td>
+        <td><button onclick="removeBlack(${i})">ลบ</button></td>
+      </tr>`;
+  });
+}
+
+function removeBlack(i){
+  let black=JSON.parse(localStorage.getItem("blacklist")||"[]");
+  black.splice(i,1);
+  localStorage.setItem("blacklist",JSON.stringify(black));
+  renderBlacklist();
+}
+
+// ===== BILL =====
+function createBill(){
+  const bill="BILL-"+Date.now();
+  document.getElementById("billOutput").innerText="เลขบิล: "+bill;
 }
 </script>
 
