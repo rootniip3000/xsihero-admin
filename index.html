@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>ADMIN PANEL</title>
+<style>
+body {
+    background-color: #000;
+    color: #00ff88;
+    font-family: monospace;
+    text-align: center;
+    padding-top: 50px;
+}
+.container {
+    border: 2px solid #00ff88;
+    padding: 20px;
+    width: 90%;
+    max-width: 400px;
+    margin: auto;
+}
+input {
+    background: black;
+    border: 1px solid #00ff88;
+    color: #00ff88;
+    padding: 10px;
+    width: 90%;
+    margin: 10px 0;
+}
+button {
+    background: #00ff88;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+}
+button:hover {
+    background: #00cc66;
+}
+.hidden {
+    display: none;
+}
+</style>
+</head>
+<body>
+
+<div class="container" id="loginBox">
+<h2>ADMIN LOGIN</h2>
+<input type="password" id="password" placeholder="Enter Admin Password">
+<br>
+<button onclick="login()">LOGIN</button>
+<p id="error"></p>
+</div>
+
+<div class="container hidden" id="adminPanel">
+<h2>WELCOME ADMIN</h2>
+<p>ระบบควบคุมเปิดใช้งาน</p>
+<button onclick="logout()">LOGOUT</button>
+</div>
+
+<script>
+const adminPassword = "102030405060708090908070605040302010Ll"; // เปลี่ยนรหัสได้
+
+function login() {
+    const input = document.getElementById("password").value;
+    if(input === adminPassword){
+        document.getElementById("loginBox").classList.add("hidden");
+        document.getElementById("adminPanel").classList.remove("hidden");
+    } else {
+        document.getElementById("error").innerText = "Wrong Password!";
+    }
+}
+
+function logout(){
+    document.getElementById("adminPanel").classList.add("hidden");
+    document.getElementById("loginBox").classList.remove("hidden");
+}
+</script>
+
+</body>
+</html>
