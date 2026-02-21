@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Xsihero56 ADMIN CORE</title>
+
+<style>
+body{
+    margin:0;
+    font-family:monospace;
+    background:black;
+    color:#00ff00;
+}
+
+input,button{
+    background:black;
+    border:1px solid #00ff00;
+    color:#00ff00;
+    padding:8px;
+    margin:5px 0;
+}
+
+button:hover{
+    background:#003300;
+}
+
+#loginPage{
+    display:flex;
+    height:100vh;
+    justify-content:center;
+    align-items:center;
+    flex-direction:column;
+}
+
+#panel{
+    display:none;
+}
+
+.header{
+    padding:15px;
+    border-bottom:1px solid #00ff00;
+    text-align:center;
+}
+
+.container{
+    display:flex;
+    height:90vh;
+}
+
+.sidebar{
+    width:220px;
+    border-left:1px solid #00ff00;
+    padding:15px;
+}
+
+.sidebar button{
+    width:100%;
+}
+
+.content{
+    flex:1;
+    padding:20px;
+    overflow:auto;
+}
+
+.card{
+    border:1px solid #00ff00;
+    padding:10px;
+    margin:10px 0;
+}
+</style>
+</head>
+
+<body>
+
+<!-- LOGIN -->
+<div id="loginPage">
+<h2>ADMIN ACCESS TERMINAL</h2>
+<input id="user" placeholder="USERNAME">
+<input id="pass" type="password" placeholder="ACCESS KEY">
+<button onclick="login()">ENTER</button>
+<p id="error" style="color:red;"></p>
+</div>
+
+<!-- ADMIN PANEL -->
+<div id="panel">
+<div class="header">
+Xsihero56 :: ADMIN CONTROL SYSTEM
+</div>
+
+<div class="container">
+<div class="content" id="main"></div>
+
+<div class="sidebar">
+<button onclick="dashboard()">Dashboard</button>
+<button onclick="membersPage()">Members</button>
+<button onclick="blacklistPage()">Blacklist</button>
+<button onclick="generateBill()">Generate Bill</button>
+<button onclick="logout()">Logout</button>
+</div>
+</div>
+</div>
+
+<script>
+
+const ADMIN_USER="Xsihero56";
+const ADMIN_PASS="102030405060708090908070605040302010Ll";
+
+let members=JSON.parse(localStorage.getItem("members"))||[];
+let blacklist=JSON.parse(localStorage.getItem("blacklist"))||[];
+
+function login(){
+ if(user.value===ADMIN_USER && pass.value===ADMIN_PASS){
+  loginPage.style.display="none";
+  panel.style.display="block";
+  dashboard();
+ }else{
+  error.innerText="ACCESS DENIED";
+ }
+}
+
+function logout(){
+ location.reload();
+}
+
+function dashboard(){
+ main.innerHTML=`
+ <h2>DASHBOARD</h2>
+ <p>Total Members: ${members.length}</p>
+ <p>Blacklist Count: ${blacklist.length}</p>
+ <p>Status: SYSTEM ONLINE</p>
+ `;
+}
+
+function membersPage(){
+ let html=`<h2>MEMBERS</h2>
+ <input id="mname" placeholder="Name">
+ <input id="mid" placeholder="Discord ID">
+ <button onclick="addMember()">Add</button>
+ `;
+ members.forEach((m,i)=>{
+  html+=`
+  <div class="card">
+  ${m.name} | ${m.id}
+  <button onclick="deleteMember(${i})">Remove</button>
+  </div>
+  `;
+ });
+ main.innerHTML=html;
+}
+
+function addMember(){
+ members.push({name:mname.value,id:mid.value});
+ localStorage.setItem("members",JSON.stringify(members));
+ membersPage();
+}
+
+function deleteMember(i){
+ members.splice(i,1);
+ localStorage.setItem("members",JSON.stringify(members));
+ membersPage();
+}
+
+function blacklistPage(){
+ let html=`<h2>BLACKLIST</h2>
+ <input id="bname" placeholder="Name">
+ <input id="breason" placeholder="Reason">
+ <button onclick="addBlack()">Add</button>
+ `;
+ blacklist.forEach((b,i)=>{
+  html+=`
+  <div class="card">
+  ${b.name} - ${b.reason}
+  <button onclick="deleteBlack(${i})">Remove</button>
+  </div>
+  `;
+ });
+ main.innerHTML=html;
+}
+
+function addBlack(){
+ blacklist.push({name:bname.value,reason:breason.value});
+ localStorage.setItem("blacklist",JSON.stringify(blacklist));
+ blacklistPage();
+}
+
+function deleteBlack(i){
+ blacklist.splice(i,1);
+ localStorage.setItem("blacklist",JSON.stringify(blacklist));
+ blacklistPage();
+}
+
+function generateBill(){
+ let code="XS-"+Date.now();
+ main.innerHTML=`
+ <h2>BILL GENERATED</h2>
+ <div class="card">${code}</div>
+ `;
+}
+
+</script>
+</body>
+</html>
